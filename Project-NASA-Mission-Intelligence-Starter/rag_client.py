@@ -59,20 +59,27 @@ def format_context(documents: List[str], metadatas: List[Dict]) -> str:
     """Format retrieved documents into context"""
     if not documents:
         return ""
-    
-    # TODO: Initialize list with header text for context section
 
-    # TODO: Loop through paired documents and their metadata using enumeration
-        # TODO: Extract mission information from metadata with fallback value
-        # TODO: Clean up mission name formatting (replace underscores, capitalize)
-        # TODO: Extract source information from metadata with fallback value  
-        # TODO: Extract category information from metadata with fallback value
-        # TODO: Clean up category name formatting (replace underscores, capitalize)
-        
-        # TODO: Create formatted source header with index number and extracted information
-        # TODO: Add source header to context parts list
-        
-        # TODO: Check document length and truncate if necessary
-        # TODO: Add truncated or full document content to context parts list
+    context_parts = ["Here is relevant information from NASA mission documents:\n"]
+    for i, (doc, meta) in enumerate(zip(documents, metadatas), 1):
+        meta = meta or {}
 
-    # TODO: Join all context parts with newlines and return formatted string
+        mission = meta.get("mission", "Unknown Mission")
+        mission = mission.replace("_", " ").title().capitalize()
+
+        source = meta.get("source", "Unknown Source")
+
+        category = meta.get("document_category", "Unknown Category")
+        category = category.replace("_", " ").title().capitalize()
+
+        context_parts.append(f"--- Source {i}: {mission} | {source} | {category} ---")
+
+        max_chars = 1500
+        if len(doc) > max_chars:
+            context_parts.append(doc[:max_chars] + "... [truncated]")
+        else:
+            context_parts.append(doc)
+
+        context_parts.append("")
+
+    return "\n".join(context_parts)
