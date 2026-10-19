@@ -14,7 +14,6 @@ Supported data sources:
 """
 
 import os
-import json
 import logging
 from pathlib import Path
 from typing import Dict, List, Any, Optional, Tuple
@@ -99,11 +98,56 @@ class ChromaEmbeddingPipelineTextOnly:
         Returns:
             List of (chunk_text, chunk_metadata) tuples
         """
-        # TODO: Handle short texts that don't need chunking
-        # TODO: Implement chunking logic with overlap
-        # TODO: Try to break at sentence boundaries
-        # TODO: Create metadata for each chunk
-        pass
+        text = text.strip()
+        if not text:
+            return []
+
+        if len(text) <= self.chunk_size:
+            spans = [(0, len(text))]
+        else:
+            sentence_breaks = ('. ', '.\n', '? ', '?\n', '! ', '!\n', '\n\n')
+            spans = []
+            start = 0
+            while start < len(text):
+                end = min(start + self.chunk_size, len(text))
+
+                if end < len(text):
+                    window = text[start:end]
+                    min_break = len(window) // 2
+                    boundary = max(
+                        (window.rfind(sep) + len(sep) for sep in sentence_breaks if sep in window),
+                        default=-1,
+                    )
+                    if boundary <= min_break:
+                        boundary = window.rfind(' ') + 1
+                    if boundary > min_break:
+                        end = start + boundary
+
+                spans.append((start, end))
+                if end >= len(text):
+                    break
+
+                next_start = end - self.chunk_overlap
+                start = next_start if next_start > start else end
+
+        chunks = []
+        for start, end in spans:
+            chunk = text[start:end].strip()
+            if not chunk:
+                continue
+            chunk_metadata = metadata.copy()
+            chunk_metadata.update({
+                'chunk_index': len(chunks),
+                'chunk_start': start,
+                'chunk_end': end,
+                'chunk_length': len(chunk),
+            })
+            chunks.append((chunk, chunk_metadata))
+
+        for _, chunk_metadata in chunks:
+            chunk_metadata['total_chunks'] = len(chunks)
+
+        return chunks
     
     def check_document_exists(self, doc_id: str) -> bool:
         """
@@ -115,9 +159,11 @@ class ChromaEmbeddingPipelineTextOnly:
         Returns:
             True if document exists, False otherwise
         """
-        # TODO: Query collection for document ID
-        # TODO: Return True if exists, False otherwise
-        pass
+
+        docs = self.collection.get([id])
+        if len(docs.keys()) > 0:
+            return True
+        return False
     
     def update_document(self, doc_id: str, text: str, metadata: Dict[str, Any]) -> bool:
         """
