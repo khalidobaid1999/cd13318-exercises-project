@@ -25,7 +25,7 @@ Use short lists for parallel items such as mission phases, crew, or instruments.
 7. Keep a factual, engaging tone suited to someone curious about spaceflight."""
 
 def generate_response(openai_key: str, user_message: str, context: str, 
-                     conversation_history: List[Dict], model: str = "gpt-3.5-turbo") -> str:
+                     conversation_history: List[Dict], model: str = "gpt-4o-mini") -> str:
     """Generate response using OpenAI with context"""
 
     system_prompt = SYSTEM_PROMPT

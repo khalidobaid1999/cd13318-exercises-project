@@ -159,11 +159,8 @@ class ChromaEmbeddingPipelineTextOnly:
         Returns:
             True if document exists, False otherwise
         """
-
-        docs = self.collection.get([id])
-        if len(docs.keys()) > 0:
-            return True
-        return False
+        docs = self.collection.get([doc_id])
+        return len(docs['ids']) > 0
     
     def update_document(self, doc_id: str, text: str, metadata: Dict[str, Any]) -> bool:
         """
@@ -266,20 +263,19 @@ class ChromaEmbeddingPipelineTextOnly:
         Returns:
             Embedding vector
         """
-        # TODO: Call OpenAI embeddings API
-        # TODO: Return embedding vector
-        # TODO: Add error handling
-        pass
+        try:
+            response = self.client.embeddings.create(model=self.embedding_model, input=text)
+            return response.data[0].embedding
+        except Exception as e:
+            logger.error(f"Error getting embedding: {e}")
+            raise
 
     def generate_document_id(self, file_path: Path, metadata: Dict[str, Any]) -> str:
         """
         Generate stable document ID based on file path and chunk position
         This allows for document updates without changing IDs
         """
-        # TODO: Create consistent ID format
-        # TODO: Use mission, source, and chunk_index
-        # Format: mission_source_chunk_0001
-        pass
+        return f"{metadata['mission']}_{metadata['source']}_chunk_{metadata['chunk_index']:04d}"
     
     def process_text_file(self, file_path: Path) -> List[Tuple[str, Dict[str, Any]]]:
         """
@@ -452,14 +448,33 @@ class ChromaEmbeddingPipelineTextOnly:
         
         stats = {'added': 0, 'updated': 0, 'skipped': 0}
         
-        # TODO: Handle different update modes (skip, update, replace)
-        # TODO: Process documents in batches
-        # TODO: For each document:
-        #   - Generate document ID
-        #   - Check if exists
-        #   - Get embedding
-        #   - Add or update in collection
-        # TODO: Return statistics
+        if update_mode == 'replace':
+            existing_ids = self.get_file_documents(file_path)
+            if existing_ids:
+                self.collection.delete(ids=existing_ids)
+
+        for i in range(0, len(documents), batch_size):
+            batch = documents[i:i + batch_size]
+            ids, texts, metadatas, embeddings = [], [], [], []
+
+            for text, metadata in batch:
+                doc_id = self.generate_document_id(file_path, metadata)
+
+                if self.check_document_exists(doc_id):
+                    if update_mode == 'update' and self.update_document(doc_id, text, metadata):
+                        stats['updated'] += 1
+                    else:
+                        stats['skipped'] += 1
+                    continue
+
+                ids.append(doc_id)
+                texts.append(text)
+                metadatas.append(metadata)
+                embeddings.append(self.get_embedding(text))
+
+            if ids:
+                self.collection.add(ids=ids, documents=texts, metadatas=metadatas, embeddings=embeddings)
+                stats['added'] += len(ids)
 
         return stats
     
@@ -487,18 +502,38 @@ class ChromaEmbeddingPipelineTextOnly:
             'missions': {}
         }
         
-        # TODO: Get files to process
-        # TODO: Loop through each file
-        # TODO: Process file and add to collection
-        # TODO: Update statistics
-        # TODO: Handle errors gracefully
-        
+        for file_path in self.scan_text_files_only(base_path):
+            try:
+                documents = self.process_text_file(file_path)
+                result = self.add_documents_to_collection(documents, file_path, update_mode=update_mode)
+            except Exception as e:
+                logger.error(f"Error processing file {file_path}: {e}")
+                stats['errors'] += 1
+                continue
+
+            mission = self.extract_mission_from_path(file_path)
+            mission_stats = stats['missions'].setdefault(
+                mission, {'files': 0, 'chunks': 0, 'added': 0, 'updated': 0, 'skipped': 0}
+            )
+            mission_stats['files'] += 1
+            mission_stats['chunks'] += len(documents)
+            stats['files_processed'] += 1
+            stats['total_chunks'] += len(documents)
+            for key in ('added', 'updated', 'skipped'):
+                mission_stats[key] += result[key]
+                stats[f'documents_{key}'] += result[key]
+
+            logger.info(f"Processed {file_path.name}: {result}")
+
         return stats
     
     def get_collection_info(self) -> Dict[str, Any]:
         """Get information about the ChromaDB collection"""
-        # TODO: Return collection name, document count, metadata
-        pass
+        return {
+            'collection_name': self.collection.name,
+            'document_count': self.collection.count(),
+            'metadata': self.collection.metadata,
+        }
     
     def query_collection(self, query_text: str, n_results: int = 5) -> Dict[str, Any]:
         """
@@ -511,8 +546,7 @@ class ChromaEmbeddingPipelineTextOnly:
         Returns:
             Query results
         """
-        # TODO: Perform test query and return results
-        pass
+        return self.collection.query(query_texts=[query_text], n_results=n_results)
     
     def get_collection_stats(self) -> Dict[str, Any]:
         """Get detailed statistics about the collection"""
