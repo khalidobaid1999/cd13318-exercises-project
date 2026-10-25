@@ -1,0 +1,58 @@
+[
+  {
+    "id": 1,
+    "category": "overview",
+    "mission": "apollo_11",
+    "question": "What was the primary objective of the Apollo 11 mission?",
+    "reference": "The primary objective of Apollo 11 was to land astronauts on the lunar surface and return them safely to Earth."
+  },
+  {
+    "id": 2,
+    "category": "crew",
+    "mission": "apollo_11",
+    "question": "Who were the crew members of Apollo 11 and what were their roles?",
+    "reference": "The Apollo 11 crew was Neil Armstrong (Mission Commander), Michael Collins (Command Module Pilot), and Edwin 'Buzz' Aldrin Jr. (Lunar Module Pilot)."
+  },
+  {
+    "id": 3,
+    "category": "timeline",
+    "mission": "apollo_11",
+    "question": "When and from where was Apollo 11 launched?",
+    "reference": "Saturn V AS-506 carrying Apollo 11 was launched at 09:32:00 Eastern Daylight Time on July 16, 1969, from Kennedy Space Center, Launch Complex 39, Pad A."
+  },
+  {
+    "id": 4,
+    "category": "technical",
+    "mission": "apollo_11",
+    "question": "Where did the Apollo 11 lunar module land, and how was the final descent flown?",
+    "reference": "The lunar module landed in the Sea of Tranquility at 102:45:40 ground elapsed time. During the final 2.5 minutes of descent it was maneuvered manually about 305 meters (1,000 ft) downrange."
+  },
+  {
+    "id": 5,
+    "category": "emergency",
+    "mission": "apollo_13",
+    "question": "What did the Apollo 13 crew report to Houston when the emergency began?",
+    "reference": "At about 55:55 ground elapsed time the commander reported 'Houston, we've had a problem. We've had a MAIN B BUS UNDERVOLT.'"
+  },
+  {
+    "id": 6,
+    "category": "emergency",
+    "mission": "apollo_13",
+    "question": "How did Mission Control and the Apollo 13 crew plan to keep the astronauts alive as oxygen pressure dropped?",
+    "reference": "As the oxygen pressure went toward zero, Mission Control and the crew began planning to use the lunar module (LM) as a lifeboat."
+  },
+  {
+    "id": 7,
+    "category": "disaster analysis",
+    "mission": "challenger",
+    "question": "What happened during the Challenger STS-51L launch, according to the mission audio?",
+    "reference": "After the engines throttled up to 104 percent ('Challenger, go with throttle up') about 1 minute 15 seconds into flight, the commentator reported 'obviously a major malfunction', loss of downlink, and a report from the flight dynamics officer that the vehicle had exploded. Contingency procedures were put into effect."
+  },
+  {
+    "id": 8,
+    "category": "crew",
+    "mission": "challenger",
+    "question": "Who was the teacher on the Challenger STS-51L crew and why was her flight notable?",
+    "reference": "Christa McAuliffe, a teacher flying as a spaceflight participant, was to be America's first private citizen to fly aboard the space shuttle."
+  }
+]
